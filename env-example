@@ -1,0 +1,11 @@
+
+PORT=3002
+SECRET=asdasd
+ADMIN_SECRET=asdasd
+REDIS_HOST=localhost
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=root
+DB_DATABASE=theme_chest
+

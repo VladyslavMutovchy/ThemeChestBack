@@ -17,22 +17,18 @@ import authApi from './lib/api/AuthApi.js';
 const __dirname = getDirName(import.meta.url);
 dotenv.config({ path: `${__dirname}/.env` });
 
-//Db creation
+
+
+
 global.dbConnection = new dbClass();
-//global helpers class
 global.helpers = HelperService;
 global.responses = Responses;
 
-// //initialize router
 const router = Router();
 
-// use some middleware and compress all outgoing responses
 router.use(compression());
-// add a body parsing middleware to our API
 router.use(bodyParser.json());
-// parse application/x-www-form-urlencoded
 router.use(bodyParser.urlencoded({ extended: false }));
-//add cors
 router.use(cors());
 
 router.route('/public/*').get((req, res) => {
@@ -52,11 +48,9 @@ router.route('/public/*').get((req, res) => {
   global.responses.errorResponse(res, 'Not found');
 });
 
-//Enable api
 router.use(authApi);
 
 const port = process.env.PORT || 3002;
-//initialize server and add router to it
 
 http.createServer(async (req, res) => {
   router(req, res, finalCallback(req, res))
