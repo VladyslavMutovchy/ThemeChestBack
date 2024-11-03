@@ -8,6 +8,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { Role } from './modules/roles/roles.model';
 import { UserRoles } from './modules/roles/user-roles.model';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     UsersModule,
     RolesModule,
-    AuthModule
+    AuthModule,
+    ProfileModule
   ],
   providers: [],
 })
