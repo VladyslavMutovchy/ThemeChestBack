@@ -8,14 +8,17 @@ import {
   NotFoundException,
   Param,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileService } from './profile.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('/postUserProfile')
   @UseInterceptors(FileInterceptor('file'))
   async uploadProfile(
@@ -26,6 +29,7 @@ export class ProfileController {
     const user = await this.profileService.updateUserProfile(id, body, file);
     return user;
   }
+  @UseGuards(JwtAuthGuard)
   @Get('/getUserData/:id')
   async getUserData(@Param('id') id: string) {
     const userId = parseInt(id, 10);
@@ -37,9 +41,15 @@ export class ProfileController {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return user;
-  }
 
+    return {
+      ...user,
+      photo: user.photo ? user.photo : null, 
+      mimeType: user.mimeType,
+    };
+  }
+  
+  @UseGuards(JwtAuthGuard)
   @Post('/changePassword/:id')
   async changePassword(
     @Param('id') id: string,

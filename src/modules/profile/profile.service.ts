@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../users/users.model';
 import { UserDto } from './dto/user.dto';
@@ -24,15 +28,20 @@ export class ProfileService {
       throw new NotFoundException('User is not found');
     }
 
-    // Обновляем только те поля, которые действительно присутствуют в userDto
     if (userDto.name !== undefined) user.name = userDto.name;
     if (userDto.phone !== undefined) user.phone = userDto.phone;
     if (userDto.language !== undefined) user.language = userDto.language;
     if (userDto.country !== undefined) user.country = userDto.country;
     if (userDto.city !== undefined) user.city = userDto.city;
 
-    // Обработка файла, если он передан
     if (file) {
+      if (user.photo) {
+        const oldPhotoPath = path.join(__dirname, '..', '..', user.photo);
+        if (fs.existsSync(oldPhotoPath)) {
+          fs.unlinkSync(oldPhotoPath); 
+        }
+      }
+
       const userDir = path.join(__dirname, '..', '..', 'uploads', String(id));
       if (!fs.existsSync(userDir)) {
         fs.mkdirSync(userDir, { recursive: true });
@@ -53,9 +62,36 @@ export class ProfileService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return user;
-  }
 
+    const photoPath = user.photo
+      ? path.join(__dirname, '..', '..', user.photo)
+      : null;
+    let photoData = null;
+    let mimeType = null;
+
+    if (photoPath && fs.existsSync(photoPath)) {
+      const fileExtension = path.extname(photoPath).toLowerCase();
+      if (fileExtension === '.png') {
+        mimeType = 'image/png';
+      } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+        mimeType = 'image/jpeg';
+      }
+
+      photoData = fs.readFileSync(photoPath);
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      phone: user.phone,
+      language: user.language,
+      country: user.country,
+      city: user.city,
+      photo: photoData ? photoData.toString('base64') : null,
+      mimeType,
+    };
+  }
   async updateUserPassword(
     id: number,
     currentPassword: string,
