@@ -9,6 +9,8 @@ import { Role } from './modules/roles/roles.model';
 import { UserRoles } from './modules/roles/user-roles.model';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { CreatorModule } from './modules/creator/creator.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -25,10 +27,12 @@ import { ProfileModule } from './modules/profile/profile.module';
       models: [User, Role, UserRoles],
       autoLoadModels: true,
     }),
+    MongooseModule.forRoot(process.env.MONGO_DB_URI),
     UsersModule,
     RolesModule,
     AuthModule,
-    ProfileModule
+    ProfileModule,
+    CreatorModule,
   ],
   providers: [],
 })
