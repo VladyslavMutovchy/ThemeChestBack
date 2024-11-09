@@ -8,7 +8,7 @@ export class KeyWords extends Document {
   guide_id: number; // ID гайда, связанного с ключевыми словами
 
   @Prop({ type: [String], required: true })
-  key_words: string[]; // Сами ключевые слова
+  themes: string[]; // Сами ключевые слова
 }
 
 export const KeyWordsSchema = SchemaFactory.createForClass(KeyWords);

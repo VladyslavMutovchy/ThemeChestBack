@@ -14,6 +14,7 @@ import { CreatorService } from './creator.service';
 import { Guide } from './creator.model';
 import { CreateGuideDto } from './dto/creator.dto';
 import { AddKeyWordsDto } from './dto/add-keywords.dto';
+import { KeyWords } from './schemas/keywords.schema';
 
 @Controller('creator')
 export class CreatorController {
@@ -28,17 +29,25 @@ export class CreatorController {
     createGuideDto.user_id = user.id; 
     return this.creatorService.createGuide(createGuideDto);
   }
-
- 
-  @UseGuards(JwtAuthGuard)
-  @Post('/addKeyWords')
-  async addKeyWords(@Body() addKeyWordsDto: AddKeyWordsDto): Promise<void> {
-    await this.creatorService.addKeyWords(addKeyWordsDto);
-  }
-
    @UseGuards(JwtAuthGuard)
    @Get('/getGuidesData/:userId')
    async getGuidesData(@Param('userId') userId: string): Promise<Guide[]> {
      return this.creatorService.getGuidesData(userId);
    }
+
+
+
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/updateGuideThemes')
+  async updateGuideThemes(@Body() addKeyWordsDto: AddKeyWordsDto): Promise<void> {
+    await this.creatorService.updateGuideThemes(addKeyWordsDto);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('/getGuideThemes/:guide_id')
+  async getGuideThemes(@Param('guide_id') guideId: string): Promise<KeyWords> {
+    return this.creatorService.getGuideThemes(guideId);
+  }
+  
+
  }

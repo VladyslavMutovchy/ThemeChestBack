@@ -28,22 +28,7 @@ export class CreatorService {
       throw error;
     }
   }
-
-  async addKeyWords(addKeyWordsDto: AddKeyWordsDto): Promise<void> {
-    try {
-      this.logger.log('addKeyWords вызван в CreatorService');
-      const keywords = new this.keyWordsModel({
-        guide_id: addKeyWordsDto.guide_id,
-        key_words: addKeyWordsDto.key_words,
-      });
-      await keywords.save();
-      this.logger.log('Ключевые слова успешно добавлены');
-    } catch (error) {
-      this.logger.error('Ошибка при добавлении ключевых слов', error);
-      throw error;
-    }
-  }
-  async getGuidesData(userId: string): Promise<Guide[]> {
+ async getGuidesData(userId: string): Promise<Guide[]> {
     try {
       return await this.guideRepository.findAll({
         where: { user_id: userId },
@@ -52,5 +37,35 @@ export class CreatorService {
       this.logger.error('Ошибка при получении гайдов', error);
       throw error;
     }
+  } 
+ 
+  
+ async updateGuideThemes(addKeyWordsDto: AddKeyWordsDto): Promise<void> {
+    try {
+      const existingKeywords = await this.keyWordsModel.findOne({ guide_id: addKeyWordsDto.guide_id });
+  
+      if (existingKeywords) {
+        existingKeywords.themes = addKeyWordsDto.themes;
+        await existingKeywords.save();
+      } else {
+        const keywords = new this.keyWordsModel({
+          guide_id: addKeyWordsDto.guide_id,
+          themes: addKeyWordsDto.themes,
+        });
+        await keywords.save();
+      }
+    } catch (error) {
+      throw error;
+    }
   }
+  
+  async getGuideThemes(guide_id: string): Promise<KeyWords> {
+    try {
+      const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
+      return keywords;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
 }
