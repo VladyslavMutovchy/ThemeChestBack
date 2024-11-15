@@ -7,6 +7,8 @@ import { KeyWords } from './schemas/keywords.schema';
 import { Model } from 'mongoose';
 import { CreateGuideDto } from './dto/creator.dto';
 import { AddKeyWordsDto } from './dto/add-keywords.dto';
+import { Chapters } from './schemas/chapters.schema';
+import { ChaptersDto } from './dto/chapters.dto';
 
 @Injectable()
 export class CreatorService {
@@ -15,6 +17,7 @@ export class CreatorService {
   constructor(
     @InjectModel(Guide) private guideRepository: typeof Guide,
     @InjectMongoModel('KeyWords') private keyWordsModel: Model<KeyWords>,
+    @InjectMongoModel('Chapters') private ChaptersModel: Model<Chapters>,
   ) {}
 
   async createGuide(createGuideDto: CreateGuideDto): Promise<Guide> {
@@ -28,7 +31,7 @@ export class CreatorService {
       throw error;
     }
   }
- async getGuidesData(userId: string): Promise<Guide[]> {
+  async getGuidesData(userId: string): Promise<Guide[]> {
     try {
       return await this.guideRepository.findAll({
         where: { user_id: userId },
@@ -37,13 +40,14 @@ export class CreatorService {
       this.logger.error('Ошибка при получении гайдов', error);
       throw error;
     }
-  } 
- 
-  
- async updateGuideThemes(addKeyWordsDto: AddKeyWordsDto): Promise<void> {
+  }
+
+  async updateGuideThemes(addKeyWordsDto: AddKeyWordsDto): Promise<void> {
     try {
-      const existingKeywords = await this.keyWordsModel.findOne({ guide_id: addKeyWordsDto.guide_id });
-  
+      const existingKeywords = await this.keyWordsModel.findOne({
+        guide_id: addKeyWordsDto.guide_id,
+      });
+
       if (existingKeywords) {
         existingKeywords.themes = addKeyWordsDto.themes;
         await existingKeywords.save();
@@ -58,7 +62,7 @@ export class CreatorService {
       throw error;
     }
   }
-  
+
   async getGuideThemes(guide_id: string): Promise<KeyWords> {
     try {
       const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
@@ -67,5 +71,36 @@ export class CreatorService {
       throw error;
     }
   }
+  async updateGuideChapters(ChaptersDto: ChaptersDto): Promise<void> {
+    try {
+      const existingChapters = await this.ChaptersModel.findOne({
+        guide_id: ChaptersDto.guide_id,
+      });
   
+      if (existingChapters) {
+        existingChapters.chapters = ChaptersDto.chapters;
+        await existingChapters.save();
+      } else {
+        const chapters = new this.ChaptersModel({
+          guide_id: ChaptersDto.guide_id,
+          chapters: ChaptersDto.chapters,
+        });
+        await chapters.save();
+      }
+  
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+
+
+  async getGuideChapters(guide_id: string): Promise<Chapters> {
+    try {
+      const chapters = await this.ChaptersModel.findOne({ guide_id }).exec();
+      return chapters;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
