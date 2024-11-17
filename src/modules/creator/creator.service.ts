@@ -68,6 +68,7 @@ export class CreatorService {
       const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
       return keywords;
     } catch (error) {
+      
       throw error;
     }
   }
@@ -100,7 +101,7 @@ export class CreatorService {
       const chapters = await this.ChaptersModel.findOne({ guide_id }).exec();
       return chapters;
     } catch (error) {
-      throw error;
+      throw error; 
     }
   }
 }

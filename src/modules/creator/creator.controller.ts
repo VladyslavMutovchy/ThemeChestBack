@@ -70,12 +70,16 @@ export class CreatorController {
       typeof body.chapters === 'string'
         ? JSON.parse(body.chapters)
         : body.chapters;
-  
+
     const chaptersDto = {
       guide_id: parseInt(body.guide_id, 10),
       chapters: chaptersData,
     };
-  
+
+    if (!chaptersDto.chapters || !Array.isArray(chaptersDto.chapters)) {
+      chaptersDto.chapters = [];
+    }
+    // Очищаем папку с файлами
     const uploadDir = path.join(
       __dirname,
       '..',
@@ -84,93 +88,111 @@ export class CreatorController {
       'guides',
       String(chaptersDto.guide_id),
     );
-  
+
     if (fs.existsSync(uploadDir)) {
       fs.rmSync(uploadDir, { recursive: true, force: true });
     }
-    
+
     fs.mkdirSync(uploadDir, { recursive: true });
-  
     if (files.length > 0) {
-      files.forEach((file) => {
-        const { originalname, buffer } = file;
-        const filePath = path.join(uploadDir, originalname);
-        fs.writeFileSync(filePath, buffer);
-  
-        chaptersDto.chapters.forEach((chapter, chapterIndex) => {
-          chapter.contents.forEach((content, contentIndex) => {
-            if (content.type === 'img' && content.value === originalname) {
+      let fileIndex = 0;
+
+      chaptersDto.chapters.forEach((chapter, chapterIndex) => {
+        chapter.contents.forEach((content, contentIndex) => {
+          if (content.type === 'img') {
+            if (files[fileIndex]) {
+              const file = files[fileIndex];
+              const { originalname, buffer } = file;
+              const filePath = path.join(uploadDir, originalname);
+
+              fs.writeFileSync(filePath, buffer);
+
               content.value = `/uploads/guides/${chaptersDto.guide_id}/${originalname}`;
-            } else if (content.type === 'img' && !content.value) {
-              content.value = `/uploads/guides/${chaptersDto.guide_id}/${originalname}`;
+
+              fileIndex++;
+            } else {
+              this.logger.warn(
+                `Not enough uploaded files to match img contents.`,
+              );
             }
-          });
+          }
         });
       });
     } else {
       this.logger.warn('No files were uploaded');
     }
-  
+
+    // Обновляем главы в базе данных
     await this.creatorService.updateGuideChapters(chaptersDto);
   }
-  
 
   @UseGuards(JwtAuthGuard)
   @Get('/getGuideChapters/:guide_id')
   async getGuideChapters(@Param('guide_id') guide_id: string): Promise<any> {
-    
-    const chaptersData: Chapters =
-      await this.creatorService.getGuideChapters(guide_id);
+    try {
+      const chaptersData: Chapters =
+        await this.creatorService.getGuideChapters(guide_id);
 
-    if (!chaptersData) {
-      throw new NotFoundException(
-        `Chapters for guide ID ${guide_id} not found`,
-      );
-    }
+      if (!chaptersData) {
+        return {
+          guide_id,
+          chapters: [],
+        };
+      }
 
-    const enrichedChapters = chaptersData.chapters.map((chapter) => {
-      const updatedContents = chapter.contents.map((content) => {
-        if (content.type === 'img' && content.value) {
-          const imagePath = path.join(
-            __dirname,
-            '..',
-            '..',
-            'uploads',
-            'guides',
-            guide_id,
-            path.basename(content.value),
-          );
-          if (fs.existsSync(imagePath)) {
-            const fileBuffer = fs.readFileSync(imagePath);
-            const base64Image = fileBuffer.toString('base64');
-            const mimeType = this.getMimeTypeFromExtension(
-              path.extname(imagePath),
-            );
+      const enrichedChapters = chaptersData.chapters.map((chapter) => {
+        const updatedContents = Array.isArray(chapter.contents)
+          ? chapter.contents.map((content) => {
+              if (content.type === 'img' && content.value) {
+                const imagePath = path.join(
+                  __dirname,
+                  '..',
+                  '..',
+                  'uploads',
+                  'guides',
+                  guide_id,
+                  path.basename(content.value),
+                );
 
-            return {
-              ...content,
-              value: {
-                url: content.value, 
-                base64: base64Image, 
-                mimeType,
-              },
-            };
-          }
-        }
-      
-        return content;
+                if (fs.existsSync(imagePath)) {
+                  const fileBuffer = fs.readFileSync(imagePath);
+                  const base64Image = fileBuffer.toString('base64');
+                  const mimeType = this.getMimeTypeFromExtension(
+                    path.extname(imagePath),
+                  );
+
+                  return {
+                    ...content,
+                    value: {
+                      url: content.value,
+                      base64: base64Image,
+                      mimeType,
+                    },
+                  };
+                }
+              }
+
+              return content;
+            })
+          : [];
+        return {
+          ...chapter,
+          contents: updatedContents,
+        };
       });
 
       return {
-        ...chapter,
-        contents: updatedContents,
+        guide_id: chaptersData.guide_id,
+        chapters: enrichedChapters,
       };
-    });
-
-    return {
-      guide_id: chaptersData.guide_id,
-      chapters: enrichedChapters,
-    };
+    } catch (error) {
+      console.error('Ошибка при получении глав:', error);
+    
+      return {
+        guide_id,
+        chapters: [],
+      };
+    }
   }
 
   private getMimeTypeFromExtension(extension: string): string {
