@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { CreatorModule } from './modules/creator/creator.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { GuidesModule } from './modules/guides/guides.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     AuthModule,
     ProfileModule,
     CreatorModule,
+    GuidesModule,
   ],
   providers: [],
 })
