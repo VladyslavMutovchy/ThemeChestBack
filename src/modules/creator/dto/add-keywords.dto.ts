@@ -9,5 +9,5 @@ export class AddKeyWordsDto {
 
   @ApiProperty({ example: ['cooking', 'baking'], description: 'Ключевые слова' })
   @IsArray({ message: 'Key words must be an array' })
-  themes: string[];
+  themes: number[];
 }

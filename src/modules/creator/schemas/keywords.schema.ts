@@ -5,10 +5,10 @@ import { Document } from 'mongoose';
 @Schema()
 export class KeyWords extends Document {
   @Prop({ required: true })
-  guide_id: number; // ID гайда, связанного с ключевыми словами
+  guide_id: number; 
 
-  @Prop({ type: [String], required: true })
-  themes: string[]; // Сами ключевые слова
+  @Prop({ type: [Number], required: true })
+  themes: number[]; 
 }
 
 export const KeyWordsSchema = SchemaFactory.createForClass(KeyWords);

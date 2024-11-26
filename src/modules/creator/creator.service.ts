@@ -9,6 +9,7 @@ import { CreateGuideDto } from './dto/creator.dto';
 import { AddKeyWordsDto } from './dto/add-keywords.dto';
 import { Chapters } from './schemas/chapters.schema';
 import { ChaptersDto } from './dto/chapters.dto';
+import { KEYWORDS } from './constanst/keywords';
 
 @Injectable()
 export class CreatorService {
@@ -43,35 +44,34 @@ export class CreatorService {
   }
 
   async updateGuideThemes(addKeyWordsDto: AddKeyWordsDto): Promise<void> {
-    try {
-      const existingKeywords = await this.keyWordsModel.findOne({
-        guide_id: addKeyWordsDto.guide_id,
-      });
+    const { guide_id, themes } = addKeyWordsDto;
 
-      if (existingKeywords) {
-        existingKeywords.themes = addKeyWordsDto.themes;
-        await existingKeywords.save();
-      } else {
-        const keywords = new this.keyWordsModel({
-          guide_id: addKeyWordsDto.guide_id,
-          themes: addKeyWordsDto.themes,
-        });
-        await keywords.save();
-      }
-    } catch (error) {
-      throw error;
-    }
+    const themeIds = themes.map((theme) => {
+      const id = Object.keys(KEYWORDS).find((key) => KEYWORDS[Number(key)] === theme);
+      return Number(id);
+    });
+
+    await this.keyWordsModel.updateOne(
+      { guide_id },
+      {
+        guide_id,
+        themes: themeIds,
+      },
+      { upsert: true }
+    );
   }
 
-  async getGuideThemes(guide_id: string): Promise<KeyWords> {
-    try {
-      const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
-      return keywords;
-    } catch (error) {
-      
-      throw error;
-    }
+  async getGuideThemes(guide_id: string): Promise<any> {
+    const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
+    const themes = keywords.themes.map((themeId) => KEYWORDS[themeId]);
+
+    return {
+      guide_id: keywords.guide_id,
+      themes,
+    };
   }
+
+
   async updateGuideChapters(ChaptersDto: ChaptersDto): Promise<void> {
     try {
       const existingChapters = await this.ChaptersModel.findOne({
