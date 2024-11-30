@@ -19,7 +19,7 @@ export class ProfileService {
 
   async updateUserProfile(
     id: number,
-    userDto: Partial<UserDto>, // Используем Partial<UserDto> для остальных полей
+    userDto: Partial<UserDto>,
     file?: Express.Multer.File,
   ) {
     const user = await this.userModel.findOne({ where: { id } });
@@ -36,13 +36,21 @@ export class ProfileService {
 
     if (file) {
       if (user.photo) {
-        const oldPhotoPath = path.join(__dirname, '..', '..', user.photo);
+        const oldPhotoPath = path.join(__dirname, '..', '..', '..', user.photo);
         if (fs.existsSync(oldPhotoPath)) {
-          fs.unlinkSync(oldPhotoPath); 
+          fs.unlinkSync(oldPhotoPath);
         }
       }
 
-      const userDir = path.join(__dirname, '..', '..', 'uploads', String(id));
+      const userDir = path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'uploads',
+        'profiles',
+        String(id),
+      );
       if (!fs.existsSync(userDir)) {
         fs.mkdirSync(userDir, { recursive: true });
       }
@@ -50,7 +58,7 @@ export class ProfileService {
 
       await fs.promises.writeFile(filePath, file.buffer);
 
-      user.photo = `/uploads/${id}/${file.originalname}`;
+      user.photo = `/uploads/profiles/${id}/${file.originalname}`;
     }
 
     await user.save();
@@ -64,7 +72,7 @@ export class ProfileService {
     }
 
     const photoPath = user.photo
-      ? path.join(__dirname, '..', '..', user.photo)
+      ? path.join(__dirname, '..', '..', '..', user.photo)
       : null;
     let photoData = null;
     let mimeType = null;
@@ -103,7 +111,6 @@ export class ProfileService {
       throw new NotFoundException('User not found');
     }
 
-    // Проверяем текущий пароль
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
       user.password,
@@ -112,7 +119,6 @@ export class ProfileService {
       throw new UnauthorizedException('Incorrect current password');
     }
 
-    // Хэшируем новый пароль
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();

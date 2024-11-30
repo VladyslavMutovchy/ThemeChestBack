@@ -32,6 +32,54 @@ export class CreatorService {
       throw error;
     }
   }
+  async getGuideById(id: number): Promise<Guide> {
+    try {
+      this.logger.log(`getGuideById вызван для guide_id: ${id}`);
+      const guide = await this.guideRepository.findByPk(id);
+
+      if (!guide) {
+        throw new Error(`Guide с ID ${id} не найден`);
+      }
+
+      return guide;
+    } catch (error) {
+      this.logger.error('Ошибка при получении гайда', error);
+      throw error;
+    }
+  }
+  
+  async updatePreviewGuide(id: number, createGuideDto: Partial<CreateGuideDto>): Promise<Guide> {
+    try {
+      this.logger.log('updatePreviewGuide вызван в CreatorService');
+  
+      // Находим существующий гайд по `id`
+      const guide = await this.guideRepository.findByPk(id);
+      if (!guide) {
+        throw new Error(`Guide с ID ${id} не найден`);
+      }
+  
+      // Обновляем поля только если они были переданы
+      if (createGuideDto.title) {
+        guide.title = createGuideDto.title;
+      }
+      
+      if (createGuideDto.description) {
+        guide.description = createGuideDto.description;
+      }
+  
+      if (createGuideDto.prev_img) {
+        guide.prev_img = createGuideDto.prev_img;
+      }
+  
+      await guide.save(); // Сохраняем изменения
+      this.logger.log(`Обновленный гайд: ${JSON.stringify(guide)}`);
+      return guide;
+  
+    } catch (error) {
+      this.logger.error('Ошибка при обновлении гайда', error);
+      throw error;
+    }
+  }
   async getGuidesData(userId: string): Promise<Guide[]> {
     try {
       return await this.guideRepository.findAll({

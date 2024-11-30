@@ -26,4 +26,18 @@ export class Guide extends Model<Guide> {
     allowNull: false,
   })
   user_id: number;
+
+  @ApiProperty({ example: 'How to boil water', description: 'Description for miniature' })
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  description: string;
+
+  @ApiProperty({ example: '', description: 'Description for miniature' })
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  prev_img: string;
 }
