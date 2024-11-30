@@ -1,4 +1,4 @@
-import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { GuidesService } from './guides.service';
 import { Guide } from '../creator/creator.model';
 
@@ -8,12 +8,14 @@ export class GuidesController {
 
   @Get('/fetchGuidesPaginated')
   async fetchGuidesPaginated(
-    @Query('page') page: number = 1
+    @Query('page') page: number = 1,
+    @Query('keywords') keywords: string = '',
+    @Query('search') search: string = ''
   ): Promise<{ data: Guide[]; total: number }> {
     const pageSize = 6;
-    if (page < 1) {
-      throw new BadRequestException('Page must be a positive number.');
-    }
-    return this.guidesService.getGuidesPaginated(page, pageSize);
+
+    const keywordArray = keywords ? keywords.split(',') : [];
+
+    return this.guidesService.getGuidesPaginated(page, pageSize, keywordArray, search);
   }
 }

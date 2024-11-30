@@ -20,5 +20,10 @@ import { Chapters, ChaptersSchema } from './schemas/chapters.schema';
   ],
   controllers: [CreatorController],
   providers: [CreatorService],
+  exports: [
+    CreatorService,
+    SequelizeModule,
+    MongooseModule,
+  ],
 })
 export class CreatorModule {}

@@ -9,7 +9,7 @@ import { CreateGuideDto } from './dto/creator.dto';
 import { AddKeyWordsDto } from './dto/add-keywords.dto';
 import { Chapters } from './schemas/chapters.schema';
 import { ChaptersDto } from './dto/chapters.dto';
-import { KEYWORDS } from './constanst/keywords';
+import { KEYWORDS } from './constants/keywords';
 
 @Injectable()
 export class CreatorService {
@@ -50,15 +50,12 @@ export class CreatorService {
   
   async updatePreviewGuide(id: number, createGuideDto: Partial<CreateGuideDto>): Promise<Guide> {
     try {
-      this.logger.log('updatePreviewGuide вызван в CreatorService');
   
-      // Находим существующий гайд по `id`
       const guide = await this.guideRepository.findByPk(id);
       if (!guide) {
         throw new Error(`Guide с ID ${id} не найден`);
       }
   
-      // Обновляем поля только если они были переданы
       if (createGuideDto.title) {
         guide.title = createGuideDto.title;
       }
@@ -71,15 +68,15 @@ export class CreatorService {
         guide.prev_img = createGuideDto.prev_img;
       }
   
-      await guide.save(); // Сохраняем изменения
-      this.logger.log(`Обновленный гайд: ${JSON.stringify(guide)}`);
+      await guide.save(); 
       return guide;
   
     } catch (error) {
-      this.logger.error('Ошибка при обновлении гайда', error);
       throw error;
     }
   }
+
+
   async getGuidesData(userId: string): Promise<Guide[]> {
     try {
       return await this.guideRepository.findAll({
