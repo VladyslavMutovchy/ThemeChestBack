@@ -217,7 +217,6 @@ export class CreatorController {
     await this.creatorService.updateGuideChapters(chaptersDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/getGuideChapters/:guide_id')
   async getGuideChapters(@Param('guide_id') guide_id: string): Promise<any> {
     try {
