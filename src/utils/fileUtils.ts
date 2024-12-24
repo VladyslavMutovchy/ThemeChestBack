@@ -22,3 +22,4 @@ export const getMimeTypeFromExtension = (extension: string): string => {
       return 'application/octet-stream';
   }
 };
+

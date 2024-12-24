@@ -12,6 +12,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { CreatorModule } from './modules/creator/creator.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GuidesModule } from './modules/guides/guides.module';
+import { AdminListModule } from './modules/admin-list/admin-list.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { GuidesModule } from './modules/guides/guides.module';
     ProfileModule,
     CreatorModule,
     GuidesModule,
+    AdminListModule,
   ],
   providers: [],
 })
