@@ -107,14 +107,27 @@ export class CreatorService {
   }
 
   async getGuideThemes(guide_id: string): Promise<any> {
-    const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
-    const themes = keywords.themes.map((themeId) => KEYWORDS[themeId]);
-
-    return {
-      guide_id: keywords.guide_id,
-      themes,
-    };
+    try {
+      const keywords = await this.keyWordsModel.findOne({ guide_id }).exec();
+      if (!keywords) {
+        return {
+          guide_id,
+          themes: [],
+        };
+      }
+  
+      const themes = keywords.themes.map((themeId) => KEYWORDS[themeId]);
+  
+      return {
+        guide_id: keywords.guide_id,
+        themes,
+      };
+    } catch (error) {
+      this.logger.error(`Ошибка при получении тем для guide_id: ${guide_id}`, error);
+      throw error;
+    }
   }
+  
 
 
   async updateGuideChapters(ChaptersDto: ChaptersDto): Promise<void> {
