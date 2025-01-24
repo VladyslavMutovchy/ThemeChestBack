@@ -9,6 +9,8 @@ import {
   UseInterceptors,
   UploadedFiles,
   ParseIntPipe,
+  ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreatorService } from './creator.service';
@@ -137,7 +139,6 @@ export class CreatorController {
       throw error;
     }
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Get('/getGuidesData/:userId')
@@ -277,5 +278,66 @@ export class CreatorController {
         chapters: [],
       };
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/generateAiGuide')
+  async generateAiGuide(
+    @Body()
+    options: {
+      theme: string;
+      difficulty: number;
+      chapters: number;
+      detailLevel: number;
+      video: boolean;
+    },
+    @Request() req,
+  ): Promise<any> {
+    const user = req.user;
+
+    try {
+      const generatedGuide = await this.creatorService.generateAiGuide({
+        ...options,
+        userId: user.id,
+      });
+
+      const savedGuide = await this.creatorService.saveGeneratedGuide(
+        generatedGuide,
+        user.id,
+      );
+
+      return savedGuide;
+    } catch (error) {
+      throw new Error('Failed to generate or save the guide.');
+    }
+  }
+
+  @Post('/deleteGuide')
+  @UseGuards(JwtAuthGuard)
+  async deleteGuide(
+    @Body() { guideId, userId }: { guideId: number; userId: number },
+  ): Promise<void> {
+    // Получаем гайд
+    const guide = await this.creatorService.getGuideById(guideId);
+
+    if (!guide) {
+      throw new NotFoundException('Guide not found');
+    }
+
+    // Проверяем права пользователя
+    if (guide.user_id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this guide',
+      );
+    }
+
+    // Удаляем главы
+    await this.creatorService.deleteGuideChapters(guideId);
+
+    // Удаляем темы
+    await this.creatorService.deleteGuideThemes(guideId);
+
+    // Удаляем сам гайд
+    await this.creatorService.deleteGuide(guideId);
   }
 }
