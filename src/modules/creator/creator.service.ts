@@ -135,8 +135,8 @@ export class CreatorService {
       const prompt = `
         Write a detailed step-by-step guide on the topic "${theme}".
         ALL text should be written in the language of the topic "${theme}"!
-        The guide must contain  ${chapters || "up to 6"} chapters.
-        The "content" field in the response must be in valid HTML format.
+        The guide must contain exact  ${chapters || 'up to 6'} chapters.
+        The "content" field in the response must be in valid HTML format (do not use:<h1>,<h2>) .
         Provide the response in the following format Only:
         {
           "title": "Guide Title",
@@ -165,7 +165,10 @@ export class CreatorService {
         throw new Error('Ответ Python API пустой.');
       }
 
-      const guideData = JSON.parse(response.data.response);
+      const guideData =
+        typeof response.data.response === 'string'
+          ? JSON.parse(response.data.response)
+          : response.data.response;
 
       if (!guideData || !Array.isArray(guideData.chapters)) {
         throw new Error('Неверный формат ответа API. Ожидался список глав.');
