@@ -9,7 +9,6 @@ import { AddKeyWordsDto } from './dto/add-keywords.dto';
 import { Chapters } from './schemas/chapters.schema';
 import { ChaptersDto } from './dto/chapters.dto';
 import { KEYWORDS } from './constants/keywords';
-import { marked } from 'marked';
 import axios from 'axios';
 
 @Injectable()
@@ -24,24 +23,20 @@ export class CreatorService {
 
   async createGuide(createGuideDto: CreateGuideDto): Promise<Guide> {
     try {
-      this.logger.log('createGuide вызван в CreatorService');
       const guide = await this.guideRepository.create(createGuideDto);
-      this.logger.log(`Созданный гайд: ${JSON.stringify(guide)}`);
       return guide;
     } catch (error) {
       this.logger.error('Ошибка при создании гайда', error);
       throw error;
     }
   }
+
   async getGuideById(id: number): Promise<Guide> {
     try {
-      this.logger.log(`getGuideById вызван для guide_id: ${id}`);
       const guide = await this.guideRepository.findByPk(id);
-
       if (!guide) {
         throw new Error(`Guide с ID ${id} не найден`);
       }
-
       return guide;
     } catch (error) {
       this.logger.error('Ошибка при получении гайда', error);
@@ -58,19 +53,15 @@ export class CreatorService {
       if (!guide) {
         throw new Error(`Guide с ID ${id} не найден`);
       }
-
       if (createGuideDto.title) {
         guide.title = createGuideDto.title;
       }
-
       if (createGuideDto.description) {
         guide.description = createGuideDto.description;
       }
-
       if (createGuideDto.prev_img) {
         guide.prev_img = createGuideDto.prev_img;
       }
-
       await guide.save();
       return guide;
     } catch (error) {
@@ -91,14 +82,12 @@ export class CreatorService {
 
   async updateGuideThemes(addKeyWordsDto: AddKeyWordsDto): Promise<void> {
     const { guide_id, themes } = addKeyWordsDto;
-
     const themeIds = themes.map((theme) => {
       const id = Object.keys(KEYWORDS).find(
         (key) => KEYWORDS[Number(key)] === theme,
       );
       return Number(id);
     });
-
     await this.keyWordsModel.updateOne(
       { guide_id },
       {
@@ -118,9 +107,7 @@ export class CreatorService {
           themes: [],
         };
       }
-
       const themes = keywords.themes.map((themeId) => KEYWORDS[themeId]);
-
       return {
         guide_id: keywords.guide_id,
         themes,
@@ -133,6 +120,7 @@ export class CreatorService {
       throw error;
     }
   }
+
   async generateAiGuide(options: {
     theme: string;
     difficulty: number;
@@ -142,90 +130,71 @@ export class CreatorService {
     userId: number;
   }): Promise<any> {
     const { theme, difficulty, chapters, detailLevel } = options;
-  
+
     try {
-      // Формируем единый запрос с требуемым количеством глав
       const prompt = `
         Write a detailed step-by-step guide on the topic "${theme}".
         ALL text should be written in the language of the topic "${theme}"!
-        The guide must contain exactly ${chapters || "any"} chapters.
-        Each chapter should have a descriptive title and content.
-        Provide the response in the following JSON format:
+        The guide must contain  ${chapters || "up to 6"} chapters.
+        The "content" field in the response must be in valid HTML format.
+        Provide the response in the following format Only:
         {
           "title": "Guide Title",
+          "description": "Proverb about title",
           "chapters": [
             {
-              "chapterTitle": "Title of Chapter 1",
+              "chapterTitle": "chapter's title",
               "content": "Content for Chapter 1"
             },
             {
-              "chapterTitle": "Title of Chapter 2",
+              "chapterTitle": "chapter's title",
               "content": "Content for Chapter 2"
             },
             ...
           ]
         }
-        Difficulty: ${['Beginner', 'Intermediate', 'Advanced', 'Expert'][difficulty - 1]}.
-        Detail level: ${detailLevel}.
+        Difficulty: ${['Beginner', 'Intermediate', 'Advanced', 'Expert'][difficulty - 1]}. 
+        Detail level: ${detailLevel} (1 = ~300 words per "content", 6 = 1500+ words per "content").
         Include step-by-step instructions, examples, and tips.
       `;
-  
-      // Отправляем запрос
       const response = await axios.post('http://localhost:5000/generate', {
         prompt,
       });
-  
+
       if (!response.data.response) {
-        console.error(`Python API response is empty.`);
-        throw new Error(`Python API response is empty.`);
+        throw new Error('Ответ Python API пустой.');
       }
-  
-      // Парсим JSON-ответ
+
       const guideData = JSON.parse(response.data.response);
-  
-      if (!guideData || !guideData.chapters || !Array.isArray(guideData.chapters)) {
-        throw new Error('Invalid API response format. Expected JSON with chapters.');
+
+      if (!guideData || !Array.isArray(guideData.chapters)) {
+        throw new Error('Неверный формат ответа API. Ожидался список глав.');
       }
-  
-      // Сохраняем гайд и главы
-      const createGuideDto = {
+
+      const chaptersData = guideData.chapters.map((chapter, index) => ({
+        chapterTitle: chapter.chapterTitle || `Chapter ${index + 1}`,
+        contents: [
+          {
+            type: 'paragraph',
+            value: chapter.content,
+          },
+        ],
+      }));
+
+      return {
         title: guideData.title,
-        user_id: options.userId,
-        description: guideData.chapters[0]?.chapterTitle || '', // Описание берем из первой главы
-        prev_img:
-          'https://memepedia.ru/wp-content/uploads/2017/10/%D1%88%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD-20.jpg',
+        description: guideData.description,
+        prev_img: 'https://placehold.co/300x300?text=Guide+Preview',
+        chapters: chaptersData,
       };
-  
-      const savedGuide = await this.createGuide(createGuideDto);
-  
-      // Сохраняем главы
-      const chaptersDto = {
-        guide_id: savedGuide.id,
-        chapters: guideData.chapters.map((chapter) => ({
-          chapterTitle: chapter.chapterTitle,
-          contents: [
-            {
-              type: 'paragraph',
-              value: marked(chapter.content), // Преобразование Markdown
-            },
-            {
-              type: 'img',
-              value:
-                'https://memepedia.ru/wp-content/uploads/2017/10/%D1%88%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD-20.jpg',
-            },
-          ],
-        })),
-      };
-  
-      await this.updateGuideChapters(chaptersDto);
-  
-      return savedGuide;
     } catch (error) {
-      console.error('Error generating guide via Python API:', error.message);
-      throw new Error('Failed to generate guide.');
+      this.logger.error(
+        'Ошибка при генерации гайда через Python API:',
+        error.message,
+      );
+      throw new Error('Не удалось сгенерировать гайд.');
     }
   }
-  
 
   async saveGeneratedGuide(guideData: any, userId: number): Promise<any> {
     const createGuideDto = {
@@ -234,15 +203,12 @@ export class CreatorService {
       description: guideData.description,
       prev_img: guideData.prev_img,
     };
-
     const savedGuide = await this.createGuide(createGuideDto);
-
     const chaptersDto = {
       guide_id: savedGuide.id,
       chapters: guideData.chapters,
     };
     await this.updateGuideChapters(chaptersDto);
-
     return savedGuide;
   }
 
@@ -251,7 +217,6 @@ export class CreatorService {
       const existingChapters = await this.ChaptersModel.findOne({
         guide_id: ChaptersDto.guide_id,
       });
-
       if (existingChapters) {
         existingChapters.chapters = ChaptersDto.chapters;
         await existingChapters.save();
@@ -268,18 +233,38 @@ export class CreatorService {
   }
 
   async deleteGuideChapters(guideId: number): Promise<void> {
-    await this.ChaptersModel.deleteMany({ guide_id: guideId });
+    try {
+      await this.ChaptersModel.deleteMany({ guide_id: guideId });
+    } catch (error) {
+      this.logger.error(
+        `Ошибка при удалении глав для guide_id ${guideId}:`,
+        error,
+      );
+      throw error;
+    }
   }
-  
+
   async deleteGuideThemes(guideId: number): Promise<void> {
-    await this.keyWordsModel.deleteMany({ guide_id: guideId });
+    try {
+      await this.keyWordsModel.deleteMany({ guide_id: guideId });
+    } catch (error) {
+      this.logger.error(
+        `Ошибка при удалении тем для guide_id ${guideId}:`,
+        error,
+      );
+      throw error;
+    }
   }
-  
+
   async deleteGuide(guideId: number): Promise<void> {
-    await this.guideRepository.destroy({ where: { id: guideId } });
+    try {
+      await this.guideRepository.destroy({ where: { id: guideId } });
+    } catch (error) {
+      this.logger.error(`Ошибка при удалении гайда с ID ${guideId}:`, error);
+      throw error;
+    }
   }
-  
-  
+
   async getGuideChapters(guide_id: string): Promise<Chapters> {
     try {
       const chapters = await this.ChaptersModel.findOne({ guide_id }).exec();

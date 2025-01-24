@@ -317,27 +317,35 @@ export class CreatorController {
   async deleteGuide(
     @Body() { guideId, userId }: { guideId: number; userId: number },
   ): Promise<void> {
-    // Получаем гайд
     const guide = await this.creatorService.getGuideById(guideId);
 
     if (!guide) {
       throw new NotFoundException('Guide not found');
     }
 
-    // Проверяем права пользователя
     if (guide.user_id !== userId) {
       throw new ForbiddenException(
         'You do not have permission to delete this guide',
       );
     }
 
-    // Удаляем главы
     await this.creatorService.deleteGuideChapters(guideId);
-
-    // Удаляем темы
     await this.creatorService.deleteGuideThemes(guideId);
 
-    // Удаляем сам гайд
+    const guideFolderPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'uploads',
+      'guides',
+      String(guideId),
+    );
+
+    if (fs.existsSync(guideFolderPath)) {
+      fs.rmSync(guideFolderPath, { recursive: true, force: true });
+    }
+
     await this.creatorService.deleteGuide(guideId);
   }
 }
