@@ -4,6 +4,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CreatorController } from './creator.controller';
 import { CreatorService } from './creator.service';
+import { AiGuideService } from './ai-guide.service';
 import { Guide } from './creator.model';
 import { KeyWords, KeyWordsSchema } from './schemas/keywords.schema';
 import { AuthModule } from '../auth/auth.module';
@@ -12,7 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    
+
     SequelizeModule.forFeature([Guide]),
     MongooseModule.forFeature([
       { name: KeyWords.name, schema: KeyWordsSchema },
@@ -24,9 +25,10 @@ import { ConfigModule } from '@nestjs/config';
     AuthModule,
   ],
   controllers: [CreatorController],
-  providers: [CreatorService],
+  providers: [CreatorService, AiGuideService],
   exports: [
     CreatorService,
+    AiGuideService,
     SequelizeModule,
     MongooseModule,
   ],
