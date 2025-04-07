@@ -1,8 +1,8 @@
 # Используем официальное Node.js изображение
-FROM node:21
+FROM node:18-alpine
 
 # Устанавливаем рабочую директорию
-WORKDIR /usr
+WORKDIR /app
 
 # Копируем package.json и package-lock.json
 COPY package*.json ./
@@ -16,5 +16,8 @@ COPY . .
 # Открываем порт приложения
 EXPOSE 3002
 
+# Делаем скрипт запуска исполняемым
+RUN chmod +x ./docker-entrypoint.sh
+
 # Команда для запуска приложения
-CMD ["npm", "run", "start:dev"]
+CMD ["/app/docker-entrypoint.sh"]

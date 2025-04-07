@@ -1,85 +1,152 @@
+# ThemeChest Backend API
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+ThemeChest Backend is a RESTful API built with NestJS that powers the ThemeChest platform. It provides endpoints for guide creation, user management, authentication, and AI-assisted content generation.
 
-## Description
+## Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Authentication**: Secure JWT-based authentication system
+- **User Management**: User registration, login, and profile management
+- **Role-Based Access Control**: Different access levels for users and administrators
+- **Guide Creation**: API endpoints for creating and managing guides
+- **AI Integration**: AI-powered guide generation capabilities
+- **MongoDB Integration**: Storage for guide content and metadata
+- **MySQL Database**: User data and relational information storage
+- **Swagger Documentation**: Interactive API documentation
 
-## Project setup
+## Tech Stack
 
-```bash
-$ npm install
+- **NestJS**: Progressive Node.js framework
+- **TypeScript**: Type-safe JavaScript
+- **Sequelize**: ORM for MySQL database
+- **Mongoose**: MongoDB object modeling
+- **JWT**: JSON Web Tokens for authentication
+- **Swagger**: API documentation
+- **Docker**: Containerization
+
+## Prerequisites
+
+- Node.js (>=16.0.0)
+- npm or yarn
+- MySQL database
+- MongoDB database
+
+## Environment Setup
+
+Create a `.development.env` file (for development) and/or a `.production.env` file (for production) in the root directory with the following variables:
+
+```
+PORT=3002
+SECRET=your_jwt_secret_key
+ADMIN_SECRET=your_admin_secret_key
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=root
+DB_DATABASE=theme_chest
+MONGO_DB_URI=mongodb://localhost:27017/theme_chest
 ```
 
-## Compile and run the project
+## Installation
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Install dependencies
+npm install
 ```
 
-## Run tests
+## Running the Application
 
 ```bash
-# unit tests
-$ npm run test
+# Development mode
+npm run start
 
-# e2e tests
-$ npm run test:e2e
+# Watch mode (development)
+npm run start:dev
 
-# test coverage
-$ npm run test:cov
+# Production mode
+npm run start:prod
 ```
 
-## Resources
+The API will be available at `http://localhost:3002/api/v1`.
 
-Check out a few resources that may come in handy when working with NestJS:
+## Docker Setup
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+You can run the entire application stack (frontend, backend, AI service, databases) using Docker:
 
-## Support
+```bash
+# Navigate to the root directory of the project (where docker-compose.yml is located)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Build and start all containers
+docker-compose up -d
 
-## Stay in touch
+# Build and start only the backend and databases
+docker-compose up -d backend mysql mongo
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# View logs
+docker-compose logs -f backend
+```
+
+This will start:
+- Frontend on http://localhost:3000
+- Backend API on http://localhost:3002/api/v1
+- AI Service on http://localhost:5000
+- MySQL database on port 3306
+- MongoDB on port 27017
+- phpMyAdmin on http://localhost:8080
+- Mongo Express on http://localhost:8081
+
+## API Documentation
+
+Swagger documentation is available at `http://localhost:3002/api/docs` when the application is running.
+
+## Project Structure
+
+```
+src/
+├── modules/           # Feature modules
+│   ├── admin-list/    # Admin management
+│   ├── auth/          # Authentication
+│   ├── creator/       # Guide creation
+│   ├── guides/        # Guide retrieval and management
+│   ├── profile/       # User profile
+│   ├── roles/         # Role management
+│   └── users/         # User management
+├── app.module.ts      # Main application module
+└── main.ts           # Application entry point
+```
+
+## Main Modules
+
+- **Auth**: Handles user authentication and authorization
+- **Users**: User management and data storage
+- **Roles**: Role-based access control
+- **Creator**: Guide creation and AI generation
+- **Guides**: Guide retrieval and search functionality
+- **Profile**: User profile management
+- **Admin List**: Administrative functions
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the MIT License.
