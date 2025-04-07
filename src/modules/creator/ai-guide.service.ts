@@ -58,14 +58,14 @@ export class AiGuideService {
 
       try {
         // Пробуем подключиться через Docker
-        response = await axios.post('http://ai-api:5000/generate', {
+        response = await axios.post('http://localhost:5000/generate', {
           prompt,
-        }, { timeout: 3000 }); // Таймаут 3 секунды
+        }, { timeout: 20000 }); // Таймаут 20 секунды
       } catch (dockerError) {
         // Если не удалось, пробуем localhost
-        this.logger.log('Не удалось подключиться к AI-сервису через Docker, пробуем localhost...');
+        this.logger.log('Не удалось подключиться к AI-сервису через localhost, пробуем Docker...');
         try {
-          response = await axios.post('http://localhost:5000/generate', {
+          response = await axios.post('http://ai-api:5000/generate', {
             prompt,
           });
         } catch (localhostError) {
